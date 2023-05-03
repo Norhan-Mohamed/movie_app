@@ -4,7 +4,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:movie_app/constant.dart';
 import 'package:movie_app/main.dart';
 import 'package:movie_app/welcomeScreen/registration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:toast/toast.dart';
 
+import '../models/helper.dart';
+import '../models/userModel.dart';
+import '../network/loginDataBase.dart';
 import 'emailWidget.dart';
 
 class LoginPage extends StatefulWidget {
@@ -17,10 +22,55 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  Future<SharedPreferences> _pref = SharedPreferences.getInstance();
   final _formField = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwoedController = TextEditingController();
+  final uEmailController = TextEditingController();
+  final uPasswordController = TextEditingController();
   bool passToggle = true;
+  var dbHelper;
+
+  @override
+  void initState() {
+    super.initState();
+    dbHelper = DbHelper();
+    ToastContext().init(context);
+  }
+
+  login() async {
+    String uEmail = uEmailController.text;
+    String uPassword = uPasswordController.text;
+
+    if (uEmail.isEmpty) {
+      alertDialog(context, "Please Enter User Email");
+    } else if (uPassword.isEmpty) {
+      alertDialog(context, "Please Enter Password");
+    } else {
+      await dbHelper.getLoginUser(uEmail, uPassword).then((userData) {
+        if (userData != null) {
+          setSP(userData).whenComplete(() {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => NavigationBarPage()),
+                (Route<dynamic> route) => false);
+          });
+        } else {
+          alertDialog(context, "Error: User Not Found");
+        }
+      }).catchError((error) {
+        print(error);
+        alertDialog(context, "Error: Login Fail");
+      });
+    }
+  }
+
+  Future setSP(UserModel user) async {
+    final SharedPreferences sp = await _pref;
+
+    sp.setString("user_id", user.user_id.toString());
+    sp.setString("user_name", user.user_name.toString());
+    sp.setString("email", user.email.toString());
+    sp.setString("password", user.password.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,32 +116,36 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   height: 10,
                 ),
-                TextFormField(
-                  key: _formField,
-                  keyboardType: TextInputType.emailAddress,
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    hintText: ' Email ',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    contentPadding: const EdgeInsets.only(left: 10),
-                    prefixIcon: Icon(
-                      Icons.email_outlined,
-                      color: Constants.secondryColor,
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: TextFormField(
+                    key: _formField,
+                    keyboardType: TextInputType.emailAddress,
+                    controller: uEmailController,
+                    decoration: InputDecoration(
+                      hintText: ' Email ',
+                      filled: true,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30))),
+                      contentPadding: const EdgeInsets.only(left: 10),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: Constants.secondryColor,
+                      ),
+                      suffixIcon: null,
+                      labelStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    suffixIcon: null,
-                    labelStyle: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Email required";
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Email required";
-                    }
-                    return null;
-                  },
                 ),
                 SizedBox(
                   height: 30,
@@ -123,40 +177,45 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   height: 10,
                 ),
-                TextFormField(
-                  keyboardType: TextInputType.emailAddress,
-                  obscureText: passToggle,
-                  controller: passwoedController,
-                  decoration: InputDecoration(
-                    hintText: 'Password',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    contentPadding: const EdgeInsets.only(left: 10),
-                    prefixIcon: Icon(
-                      Icons.lock,
-                      color: Constants.secondryColor,
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: TextFormField(
+                    keyboardType: TextInputType.emailAddress,
+                    obscureText: passToggle,
+                    controller: uPasswordController,
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      filled: true,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30))),
+                      contentPadding: const EdgeInsets.only(left: 10),
+                      prefixIcon: Icon(
+                        Icons.lock,
+                        color: Constants.secondryColor,
+                      ),
+                      suffixIcon: InkWell(
+                        onTap: () {
+                          setState(() {
+                            passToggle = !passToggle;
+                          });
+                        },
+                        child: Icon(passToggle
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                      ),
+                      labelStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    suffixIcon: InkWell(
-                      onTap: () {
-                        setState(() {
-                          passToggle = !passToggle;
-                        });
-                      },
-                      child: Icon(
-                          passToggle ? Icons.visibility : Icons.visibility_off),
-                    ),
-                    labelStyle: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Password required";
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Password required";
-                    }
-                    return null;
-                  },
                 ),
               ],
             ),
@@ -200,15 +259,7 @@ class _LoginPageState extends State<LoginPage> {
                   backgroundColor:
                       MaterialStatePropertyAll<Color>(Constants.secondryColor),
                 ),
-                onPressed: () {
-                  /*   if (_formField.currentState!.validate()) {
-                    print("success");
-                    emailController.clear();
-                    passwoedController.clear();
-                  }*/
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => NavigationBarPage()));
-                },
+                onPressed: () => login(),
                 child: Text(
                   'Login',
                   style: TextStyle(

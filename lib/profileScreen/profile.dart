@@ -35,7 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         bottomLeft: Radius.circular(45),
                         bottomRight: Radius.circular(45))),
                 child: BackdropFilter(
-                  filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 9.0),
                   child: new Container(
                     decoration:
                         new BoxDecoration(color: Colors.white.withOpacity(0.5)),

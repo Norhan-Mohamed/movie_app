@@ -23,7 +23,7 @@ class _WelcomePageState extends State<WelcomePage> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.only(top: 40.0),
                 child: Text(
                   "Welcome",
                   style: TextStyle(
@@ -38,7 +38,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    height: 30,
+                    height: 20,
                   ),
                   Padding(
                     padding: EdgeInsets.all(10.0),
