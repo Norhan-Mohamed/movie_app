@@ -54,7 +54,7 @@ class _SignUpPageState extends State<SignUpPage> {
               context, MaterialPageRoute(builder: (_) => LoginPage()));
         }).catchError((error) {
           print(error);
-          alertDialog(context, "Error: Data Save Fail");
+          alertDialog(context, "Error: Data Save Fail" + error.toString());
         });
       }
     }
@@ -313,10 +313,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     backgroundColor: MaterialStatePropertyAll<Color>(
                         Constants.secondryColor),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => LoginPage()));
-                  },
+                  onPressed: () async => signUp(),
                   child: Text(
                     'Sign up',
                     style: TextStyle(
