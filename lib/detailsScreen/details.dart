@@ -81,7 +81,8 @@ class _DetailsPageState extends State<DetailsPage> {
                             },
                             icon: Icon(
                               Icons.arrow_back,
-                              color: Colors.yellowAccent,
+                              color: Constants.secondryColor,
+                              size: 35,
                             )),
                       ]),
                       Row(
@@ -89,14 +90,20 @@ class _DetailsPageState extends State<DetailsPage> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              widget.title,
-                              style: const TextStyle(
-                                  fontSize: 20,
-                                  fontFamily:
-                                      'FontsFree-Net-SFProText-Regular.ttf',
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
+                            child: Container(
+                              width: 300,
+                              child: Wrap(children: [
+                                Text(
+                                  widget.title,
+                                  maxLines: 3,
+                                  style: const TextStyle(
+                                      fontSize: 20,
+                                      fontFamily:
+                                          'FontsFree-Net-SFProText-Regular.ttf',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ]),
                             ),
                           ),
                           Icon(

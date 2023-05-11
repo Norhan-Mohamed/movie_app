@@ -19,15 +19,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int indexCategory = -1;
-  List indexList = [0, 1, 2, 3];
+  List indexList = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   late String category = '';
-  int initial = 4208;
+  String initial = 'comedy';
   @override
   List categories = [
     "comedy",
     "action",
     "tragedy",
     "horror",
+    "drama",
+    "documentary",
+    "animation",
+    "adventure",
+    "science fiction",
   ];
 
   Widget build(BuildContext context) {
@@ -48,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   snapshot.data!.tops[3].image,
                   snapshot.data!.tops[4].image,
                   snapshot.data!.tops[5].image,
+                  snapshot.data!.tops[6].image,
                 ];
                 return Column(
                   children: [
@@ -111,14 +117,14 @@ class _MyHomePageState extends State<MyHomePage> {
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(3),
+                            padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(25),
-                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(23),
+                              color: Colors.black26,
                               border: Border.all(
                                   color: indexCategory == indexList[index]
                                       ? Constants.secondryColor
-                                      : Colors.black54,
+                                      : Constants.primaryColor,
                                   width: 2),
                             ),
                             child: Center(
@@ -136,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     SizedBox(
-                      height: 10,
+                      height: 6,
                     ),
                     Expanded(
                       child: ListView.separated(

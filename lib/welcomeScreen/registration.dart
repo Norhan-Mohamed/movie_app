@@ -22,10 +22,11 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = new GlobalKey<FormState>();
   final emailController = TextEditingController();
 
-  final userId = TextEditingController();
+  // final userId = TextEditingController();
   final passwordController = TextEditingController();
   final cPasswordController = TextEditingController();
   final userNameController = TextEditingController();
+  bool passToggle = true;
   var dbHelper;
   @override
   void initState() {
@@ -34,7 +35,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   signUp() async {
-    String uid = userId.text;
+    // String uid = userId.text;
     String uname = userNameController.text;
     String email = emailController.text;
     String password = passwordController.text;
@@ -46,15 +47,16 @@ class _SignUpPageState extends State<SignUpPage> {
       } else {
         _formKey.currentState!.save();
 
-        UserModel uModel = UserModel(uid, uname, email, password);
+        UserModel uModel = UserModel(uname, email, password);
         await dbHelper.saveData(uModel).then((userData) {
+          print(uname + email + password);
           alertDialog(context, "Successfully Saved");
 
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => LoginPage()));
         }).catchError((error) {
           print(error);
-          alertDialog(context, "Error: Data Save Fail" + error.toString());
+          alertDialog(context, "Error: Data Save Fail");
         });
       }
     }
@@ -107,6 +109,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     child: TextFormField(
                       keyboardType: TextInputType.emailAddress,
                       controller: userNameController,
+                      style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: ' Name ',
                         contentPadding: const EdgeInsets.only(left: 10),
@@ -179,7 +182,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   SizedBox(
-                    height: 20,
+                    height: 15,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -192,17 +195,6 @@ class _SignUpPageState extends State<SignUpPage> {
                             fontSize: 15,
                             color: Colors.white),
                       ),
-                      SizedBox(
-                        width: 170,
-                      ),
-                      Text(
-                        "forget password?",
-                        style: TextStyle(
-                            fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      )
                     ],
                   ),
                   SizedBox(
@@ -211,7 +203,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: TextFormField(
+                      obscureText: passToggle,
                       controller: passwordController,
+                      style: TextStyle(color: Colors.white),
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         hintText: 'Password',
@@ -220,7 +214,16 @@ class _SignUpPageState extends State<SignUpPage> {
                           Icons.lock,
                           color: Constants.secondryColor,
                         ),
-                        suffixIcon: null,
+                        suffixIcon: InkWell(
+                          onTap: () {
+                            setState(() {
+                              passToggle = !passToggle;
+                            });
+                          },
+                          child: Icon(passToggle
+                              ? Icons.visibility
+                              : Icons.visibility_off),
+                        ),
                         border: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.all(Radius.circular(10))),
@@ -239,13 +242,28 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   SizedBox(
-                    height: 20,
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(padding: EdgeInsets.only(left: 30)),
+                      Text(
+                        "Password confirm",
+                        style: TextStyle(
+                            fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                            fontSize: 15,
+                            color: Colors.white),
+                      ),
+                    ],
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: TextFormField(
                       controller: cPasswordController,
                       keyboardType: TextInputType.number,
+                      obscureText: passToggle,
+                      style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: 'Confirm Password',
                         contentPadding: const EdgeInsets.only(left: 10),
@@ -253,7 +271,16 @@ class _SignUpPageState extends State<SignUpPage> {
                           Icons.lock,
                           color: Constants.secondryColor,
                         ),
-                        suffixIcon: null,
+                        suffixIcon: InkWell(
+                          onTap: () {
+                            setState(() {
+                              passToggle = !passToggle;
+                            });
+                          },
+                          child: Icon(passToggle
+                              ? Icons.visibility
+                              : Icons.visibility_off),
+                        ),
                         border: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.all(Radius.circular(10))),
@@ -323,6 +350,35 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Do you have an account?",
+                    style: TextStyle(
+                        fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                        fontSize: 15,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                        wordSpacing: 1),
+                  ),
+                  TextButton(
+                    child: Text(
+                      "Sign in",
+                      style: TextStyle(
+                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                          fontSize: 15,
+                          color: Colors.orange,
+                          letterSpacing: 1,
+                          wordSpacing: 1),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => LoginPage()));
+                    },
+                  ),
+                ],
+              )
             ],
           ),
         ),

@@ -43,6 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               Align(
+                heightFactor: 1.7,
                 alignment: Alignment.bottomCenter,
                 child: CircleAvatar(
                   radius: 70,

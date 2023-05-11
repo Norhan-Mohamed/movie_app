@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toast/toast.dart';
 
 import '../models/helper.dart';
-import '../models/userModel.dart';
 import '../network/loginDataBase.dart';
 import 'emailWidget.dart';
 
@@ -26,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formField = GlobalKey<FormState>();
   final uEmailController = TextEditingController();
   final uPasswordController = TextEditingController();
+  final unameController = TextEditingController();
   bool passToggle = true;
   var dbHelper;
 
@@ -39,20 +39,21 @@ class _LoginPageState extends State<LoginPage> {
   login() async {
     String uEmail = uEmailController.text;
     String uPassword = uPasswordController.text;
-
     if (uEmail.isEmpty) {
       alertDialog(context, "Please Enter User Email");
     } else if (uPassword.isEmpty) {
       alertDialog(context, "Please Enter Password");
     } else {
       await dbHelper.getLoginUser(uEmail, uPassword).then((userData) {
+        print(userData);
         if (userData != null) {
-          setSP(userData).whenComplete(() {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => NavigationBarPage()),
-                (Route<dynamic> route) => false);
-          });
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => NavigationBarPage()),
+              (Route<dynamic> route) => false);
+          /*setSP(userData).whenComplete(() {
+            print("done");
+          });*/
         } else {
           alertDialog(context, "Error: User Not Found");
         }
@@ -63,15 +64,13 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future setSP(UserModel user) async {
+  /* Future setSP(UserModel user) async {
     final SharedPreferences sp = await _pref;
-
-    sp.setString("user_id", user.user_id.toString());
     sp.setString("user_name", user.user_name.toString());
     sp.setString("email", user.email.toString());
     sp.setString("password", user.password.toString());
   }
-
+*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                     key: _formField,
                     keyboardType: TextInputType.emailAddress,
                     controller: uEmailController,
+                    style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: ' Email ',
                       filled: true,
@@ -155,14 +155,14 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     Padding(padding: EdgeInsets.only(left: 30)),
                     Text(
-                      "Passord",
+                      "Password",
                       style: TextStyle(
                           fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
                           fontSize: 15,
                           color: Colors.white),
                     ),
                     SizedBox(
-                      width: 200,
+                      width: 180,
                     ),
                     Text(
                       "forget password?",
@@ -183,6 +183,7 @@ class _LoginPageState extends State<LoginPage> {
                     keyboardType: TextInputType.emailAddress,
                     obscureText: passToggle,
                     controller: uPasswordController,
+                    style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Password',
                       filled: true,
@@ -259,7 +260,7 @@ class _LoginPageState extends State<LoginPage> {
                   backgroundColor:
                       MaterialStatePropertyAll<Color>(Constants.secondryColor),
                 ),
-                onPressed: () => login(),
+                onPressed: login,
                 child: Text(
                   'Login',
                   style: TextStyle(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movie_app/favoriteScreen/favorite.dart';
+import 'package:movie_app/network/loginDataBase.dart';
 import 'package:movie_app/profileScreen/profile.dart';
 import 'package:movie_app/welcomeScreen/welcome.dart';
 
@@ -10,6 +11,8 @@ import 'network/favoriteDataBase.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   FavDataProvider.instance.open();
+  DbHelper.instance.initDb();
+
   runApp(const MyApp());
 }
 

@@ -65,7 +65,7 @@ $columnimdbid text
     return favScreenModel;
   }
 
-  Future<int> delete(int id) async {
+  Future<int> delete(String? id) async {
     return await db
         .delete('FavMovieTable', where: '$columnid = ?', whereArgs: [id]);
   }

@@ -55,19 +55,31 @@ class _FavoritePageState extends State<FavoritePage> {
                         ),
                         child: Column(
                           children: [
-                            Container(
-                              height: MediaQuery.of(context).size.height *
-                                  0.20, //145,
-                              width: MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                image: DecorationImage(
-                                    image: NetworkImage(
-                                        "${snapshot.data![index].image}"),
-                                    fit: BoxFit.fill),
+                            Stack(children: [
+                              Container(
+                                height: MediaQuery.of(context).size.height *
+                                    0.20, //145,
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                  image: DecorationImage(
+                                      image: NetworkImage(
+                                          "${snapshot.data![index].image}"),
+                                      fit: BoxFit.fill),
+                                ),
                               ),
-                            ),
+                              IconButton(
+                                  onPressed: () async {
+                                    await FavDataProvider.instance
+                                        .delete(snapshot.data![index].id);
+                                  },
+                                  icon: Icon(
+                                    Icons.favorite,
+                                    color: Constants.secondryColor,
+                                    size: 26,
+                                  ))
+                            ]),
                             const SizedBox(
                               height: 10,
                             ),
