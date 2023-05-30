@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:movie_app/favoriteScreen/favorite.dart';
 import 'package:movie_app/network/loginDataBase.dart';
-import 'package:movie_app/profileScreen/profile.dart';
 import 'package:movie_app/welcomeScreen/welcome.dart';
 
+import 'Screens/favorite.dart';
+import 'Screens/home.dart';
+import 'Screens/profile.dart';
 import 'constant.dart';
-import 'homeScreen/home.dart';
 import 'network/favoriteDataBase.dart';
 
 void main() {

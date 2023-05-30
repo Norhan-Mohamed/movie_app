@@ -69,6 +69,12 @@ class _DetailsPageState extends State<DetailsPage> {
                     children: [
                       Stack(children: [
                         Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(23),
+                            border: Border.all(
+                                color: Constants.secondryColor, width: 2),
+                          ),
+                          height: 350,
                           width: MediaQuery.of(context).size.width,
                           child: Image.network(
                             widget.image,

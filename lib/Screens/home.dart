@@ -1,12 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_app/constant.dart';
-import 'package:movie_app/detailsScreen/details.dart';
 import 'package:movie_app/models/favScreenModel.dart';
 import 'package:movie_app/network/apiRequest.dart';
 import 'package:movie_app/network/favoriteDataBase.dart';
 
 import '../models/topMoviesModel.dart';
+import 'details.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -104,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     Container(
                       padding: const EdgeInsets.all(2),
-                      height: 40,
+                      height: 50,
                       width: MediaQuery.of(context).size.width,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
@@ -117,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(23),
                               color: Colors.black26,
