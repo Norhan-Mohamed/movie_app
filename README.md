@@ -4,6 +4,26 @@ Flutter movie browsing app with local authentication, SQLite favorites, and IMDb
 
 **Initially created:** March 2023
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/home.png" width="220" alt="Home screen" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/details.png" width="220" alt="Movie details" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/details_trailer.png" width="220" alt="Trailer playback" />
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/favorites.png" width="220" alt="Favourites" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/profile.png" width="220" alt="Profile" />
+</p>
+
+| Home | Details | Trailer | Favourites | Profile |
+|:----:|:-------:|:-------:|:----------:|:-------:|
+| Browse top movies & genres | Overview, cast & crew | YouTube trailer | Saved movies | Account & logout |
+
 ## Features
 
 - Welcome / login / sign-up (local SQLite users)
