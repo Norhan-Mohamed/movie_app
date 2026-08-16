@@ -6,12 +6,11 @@ class UserModel {
   UserModel(this.user_name, this.email, this.password);
 
   Map<String, dynamic> toMap() {
-    var map = <String, dynamic>{
+    return {
       'user_name': user_name,
       'email': email,
-      'password': password
+      'password': password,
     };
-    return map;
   }
 
   UserModel.fromMap(Map<String, dynamic> map) {

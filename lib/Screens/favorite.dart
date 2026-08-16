@@ -14,13 +14,25 @@ class FavoritePage extends StatefulWidget {
 }
 
 class _FavoritePageState extends State<FavoritePage> {
+  late Future<List<FavScreenModel>> _favoritesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  void _loadFavorites() {
+    _favoritesFuture = FavDataProvider.instance.getData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Constants.primaryColor,
       appBar: AppBar(
         backgroundColor: Constants.secondryColor,
-        title: Text(
+        title: const Text(
           "My Movies",
           style: TextStyle(
               fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
@@ -32,121 +44,135 @@ class _FavoritePageState extends State<FavoritePage> {
         ),
       ),
       body: FutureBuilder<List<FavScreenModel>>(
-          future: FavDataProvider.instance.getData(),
+          future: _favoritesFuture,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return Container(
-                  //  height: 400,
-                  child: GridView.builder(
+              if (snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No favourites yet',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }
+              return GridView.builder(
+                padding: const EdgeInsets.all(12),
                 itemCount: snapshot.data?.length,
                 itemBuilder: (context, index) {
-                  return InkWell(
-                      child: GestureDetector(
-                    // onTap: () => Navigator.of(context)
-                    //    .push(MaterialPageRoute()),
+                  final fav = snapshot.data![index];
+                  return GestureDetector(
                     child: Hero(
-                      tag: 'photo$index',
+                      tag: 'fav${fav.id}',
                       child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.black26,
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Stack(children: [
-                              Container(
-                                height: MediaQuery.of(context).size.height *
-                                    0.20, //145,
-                                width: MediaQuery.of(context).size.width,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                  image: DecorationImage(
-                                      image: NetworkImage(
-                                          "${snapshot.data![index].image}"),
-                                      fit: BoxFit.fill),
-                                ),
-                              ),
-                              IconButton(
-                                  onPressed: () async {
-                                    await FavDataProvider.instance
-                                        .delete(snapshot.data![index].id);
-                                  },
-                                  icon: Icon(
-                                    Icons.favorite,
-                                    color: Constants.secondryColor,
-                                    size: 26,
-                                  ))
-                            ]),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  snapshot.data![index].title.toString(),
-                                  textAlign: TextAlign.start,
-                                  style: const TextStyle(
-                                      fontSize: 20,
-                                      fontFamily:
-                                          'FontsFree-Net-SFProText-Regular.ttf',
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                  maxLines: 1,
-                                ),
-                                Text(
-                                  "rank: " +
-                                      snapshot.data![index].rank.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontFamily:
-                                        'FontsFree-Net-SFProText-Regular.ttf',
-                                    color: Colors.white,
+                            Expanded(
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: Image.network(
+                                      '${fav.image}',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        color: Colors.black45,
+                                        child: const Icon(
+                                          Icons.movie,
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  maxLines: 1,
-                                ),
-                              ],
+                                  Align(
+                                    alignment: Alignment.topLeft,
+                                    child: IconButton(
+                                      onPressed: () async {
+                                        await FavDataProvider.instance
+                                            .delete(fav.id);
+                                        setState(() {
+                                          _loadFavorites();
+                                        });
+                                      },
+                                      icon: Icon(
+                                        Icons.favorite,
+                                        color: Constants.secondryColor,
+                                        size: 26,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            SizedBox(
-                              height: 10,
+                            const SizedBox(height: 6),
+                            Text(
+                              fav.title.toString(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily:
+                                    'FontsFree-Net-SFProText-Regular.ttf',
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'rank: ${fav.rank}',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontFamily:
+                                    'FontsFree-Net-SFProText-Regular.ttf',
+                                color: Colors.white,
+                              ),
                             ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Text(
-                                  "year: " +
-                                      snapshot.data![index].year.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.white,
-                                    fontFamily:
-                                        'FontsFree-Net-SFProText-Regular.ttf',
+                                Expanded(
+                                  child: Text(
+                                    'year: ${fav.year}',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontFamily:
+                                          'FontsFree-Net-SFProText-Regular.ttf',
+                                    ),
                                   ),
-                                  maxLines: 1,
                                 ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      "rate " +
-                                          snapshot.data![index].rating
-                                              .toString(),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.white,
-                                        fontFamily:
-                                            'FontsFree-Net-SFProText-Regular.ttf',
+                                Flexible(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          'rate ${fav.rating}',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                            fontFamily:
+                                                'FontsFree-Net-SFProText-Regular.ttf',
+                                          ),
+                                        ),
                                       ),
-                                      maxLines: 1,
-                                    ),
-                                    Icon(
-                                      Icons.star,
-                                      color: Colors.yellowAccent,
-                                      size: 10,
-                                    ),
-                                  ],
+                                      const Icon(
+                                        Icons.star,
+                                        color: Colors.yellowAccent,
+                                        size: 10,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -154,24 +180,27 @@ class _FavoritePageState extends State<FavoritePage> {
                         ),
                       ),
                     ),
-                  ));
+                  );
                 },
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 250,
-                    crossAxisSpacing: 20,
-                    childAspectRatio: 3 / 4,
-                    mainAxisSpacing: 20),
-              ));
-            }
-            if (snapshot.hasError) {
-              print(snapshot.error!);
-              return Container(
-                child: Text(snapshot.error!.toString()),
+                  maxCrossAxisExtent: 250,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.68,
+                ),
               );
             }
-            return Center(
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  snapshot.error!.toString(),
+                  style: const TextStyle(color: Colors.white),
+                ),
+              );
+            }
+            return const Center(
               child: CircularProgressIndicator(
-                color: Constants.primaryColor,
+                color: Constants.secondryColor,
               ),
             );
           }),

@@ -1,43 +1,37 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:movie_app/models/topMoviesModel.dart';
 
-import '../models/moviesModel.dart';
+import '../models/topMoviesModel.dart';
 
 class ApiTopMovies {
-  Future<ListOfTops> ApiData() async {
-    final response = await http
-        .get(Uri.https('imdb-top-100-movies.p.rapidapi.com'), headers: {
-      'X-RapidAPI-Key': 'dfca9aeeabmsh821bd4b8f611251p158266jsn3f9057aef37a',
-      'X-RapidAPI-Host': 'imdb-top-100-movies.p.rapidapi.com'
-    });
-    if (response.statusCode <= 299 && response.statusCode >= 200) {
-      List body = jsonDecode(response.body);
-      print(body);
-      ListOfTops topMoviesModel = ListOfTops.fromJson(body);
-      return topMoviesModel;
-    } else {
-      throw ('failed' + response.body);
-    }
-  }
-}
+  static const String _apiKey = String.fromEnvironment(
+    'RAPIDAPI_KEY',
+    defaultValue: 'dfca9aeeabmsh821bd4b8f611251p158266jsn3f9057aef37a',
+  );
 
-class ApiDataById {
-  Future<MoviesModel> ApiData() async {
-    final response = await http
-        .get(Uri.https('imdb-top-100-movies.p.rapidapi.com/top17'), headers: {
-      'X-RapidAPI-Key': 'dfca9aeeabmsh821bd4b8f611251p158266jsn3f9057aef37a',
-      'X-RapidAPI-Host': 'imdb-top-100-movies.p.rapidapi.com'
-    });
-    if (response.statusCode <= 299 && response.statusCode >= 200) {
-      List body = jsonDecode(response.body);
-      print(body);
-      MoviesModel moviesModel =
-          MoviesModel.fromJson(body as Map<String, dynamic>);
-      return moviesModel;
-    } else {
-      throw ('failed' + response.body);
+  Future<ListOfTops> apiData() async {
+    final response = await http.get(
+      Uri.https('imdb-top-100-movies.p.rapidapi.com', '/'),
+      headers: {
+        'X-RapidAPI-Key': _apiKey,
+        'X-RapidAPI-Host': 'imdb-top-100-movies.p.rapidapi.com',
+      },
+    );
+
+    if (response.statusCode >= 200 && response.statusCode <= 299) {
+      final List body = jsonDecode(response.body);
+      return ListOfTops.fromJson(body);
     }
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw Exception(
+        'API access denied (${response.statusCode}).\n\n'
+        'Check that the RapidAPI key is valid and subscribed to '
+        '"IMDb Top 100 Movies" on RapidAPI.',
+      );
+    }
+
+    throw Exception('Failed to load movies: ${response.statusCode}');
   }
 }

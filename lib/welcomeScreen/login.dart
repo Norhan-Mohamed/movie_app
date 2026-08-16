@@ -5,7 +5,6 @@ import 'package:movie_app/constant.dart';
 import 'package:movie_app/main.dart';
 import 'package:movie_app/welcomeScreen/registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:toast/toast.dart';
 
 import '../models/helper.dart';
 import '../network/loginDataBase.dart';
@@ -21,285 +20,324 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  Future<SharedPreferences> _pref = SharedPreferences.getInstance();
-  final _formField = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final uEmailController = TextEditingController();
   final uPasswordController = TextEditingController();
-  final unameController = TextEditingController();
   bool passToggle = true;
-  var dbHelper;
+  late final DbHelper dbHelper;
+
+  InputDecoration _fieldDecoration({
+    required String hintText,
+    required Widget prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Colors.black45),
+      filled: true,
+      fillColor: Constants.fourthColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide(color: Constants.secondryColor, width: 1.5),
+      ),
+      errorBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide(color: Colors.redAccent),
+      ),
+      focusedErrorBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     dbHelper = DbHelper();
-    ToastContext().init(context);
   }
 
-  login() async {
-    String uEmail = uEmailController.text;
+  @override
+  void dispose() {
+    uEmailController.dispose();
+    uPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveSession(String name, String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_logged_in', true);
+    await prefs.setString('user_name', name);
+    await prefs.setString('email', email);
+  }
+
+  Future<void> login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    String uEmail = uEmailController.text.trim();
     String uPassword = uPasswordController.text;
-    if (uEmail.isEmpty) {
-      alertDialog(context, "Please Enter User Email");
-    } else if (uPassword.isEmpty) {
-      alertDialog(context, "Please Enter Password");
-    } else {
-      await dbHelper.getLoginUser(uEmail, uPassword).then((userData) {
-        print(userData);
-        if (userData != null) {
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => NavigationBarPage()),
-              (Route<dynamic> route) => false);
-          /*setSP(userData).whenComplete(() {
-            print("done");
-          });*/
-        } else {
-          alertDialog(context, "Error: User Not Found");
-        }
-      }).catchError((error) {
-        print(error);
-        alertDialog(context, "Error: Login Fail");
-      });
+
+    try {
+      final userData = await dbHelper.getLoginUser(uEmail, uPassword);
+      if (userData != null) {
+        await _saveSession(userData.user_name ?? '', userData.email ?? '');
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const NavigationBarPage()),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        if (!mounted) return;
+        alertDialog(context, "Error: User Not Found");
+      }
+    } catch (error) {
+      if (!mounted) return;
+      alertDialog(context, "Error: Login Fail");
     }
   }
 
-  /* Future setSP(UserModel user) async {
-    final SharedPreferences sp = await _pref;
-    sp.setString("user_name", user.user_name.toString());
-    sp.setString("email", user.email.toString());
-    sp.setString("password", user.password.toString());
-  }
-*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Constants.primaryColor,
-      body: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image(
-              height: 80,
-              width: 80,
-              image: AssetImage('assets/movie2.png'),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(13.0),
-              child: Text(
-                "Welcome back!",
-                style: TextStyle(
-                    fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                    fontSize: 30,
-                    color: Colors.white),
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(padding: EdgeInsets.only(left: 30)),
-                    Text(
-                      "E-mail address",
-                      style: TextStyle(
-                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                          fontSize: 15,
-                          color: Colors.white),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    key: _formField,
-                    keyboardType: TextInputType.emailAddress,
-                    controller: uEmailController,
-                    style: TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: ' Email ',
-                      filled: true,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30))),
-                      contentPadding: const EdgeInsets.only(left: 10),
-                      prefixIcon: Icon(
-                        Icons.email_outlined,
-                        color: Constants.secondryColor,
-                      ),
-                      suffixIcon: null,
-                      labelStyle: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Email required";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(padding: EdgeInsets.only(left: 30)),
-                    Text(
-                      "Password",
-                      style: TextStyle(
-                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                          fontSize: 15,
-                          color: Colors.white),
-                    ),
-                    SizedBox(
-                      width: 180,
-                    ),
-                    Text(
-                      "forget password?",
-                      style: TextStyle(
-                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    )
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    keyboardType: TextInputType.emailAddress,
-                    obscureText: passToggle,
-                    controller: uPasswordController,
-                    style: TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Password',
-                      filled: true,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30))),
-                      contentPadding: const EdgeInsets.only(left: 10),
-                      prefixIcon: Icon(
-                        Icons.lock,
-                        color: Constants.secondryColor,
-                      ),
-                      suffixIcon: InkWell(
-                        onTap: () {
-                          setState(() {
-                            passToggle = !passToggle;
-                          });
-                        },
-                        child: Icon(passToggle
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                      ),
-                      labelStyle: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Password required";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Divider(
-              height: 60,
-              thickness: .5,
-              color: Constants.secondryColor,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CustomWidgets.socialButtonCircle(
-                    facebookColor, FontAwesomeIcons.facebookF,
-                    iconColor: Colors.white, onTap: () {
-                  Fluttertoast.showToast(msg: 'I am circle facebook');
-                }),
-                CustomWidgets.socialButtonCircle(
-                    googleColor, FontAwesomeIcons.googlePlusG,
-                    iconColor: Colors.white, onTap: () {
-                  Fluttertoast.showToast(msg: 'I am circle google');
-                }),
-                CustomWidgets.socialButtonCircle(
-                    whatsappColor, FontAwesomeIcons.whatsapp,
-                    iconColor: Colors.white, onTap: () {
-                  Fluttertoast.showToast(msg: 'I am circle whatsapp');
-                }),
-              ],
-            ),
-            SizedBox(
-              height: 60,
-            ),
-            Container(
-              height: 60,
-              width: 200,
-              decoration: BoxDecoration(
-                color: Constants.secondryColor,
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-              ),
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStatePropertyAll<Color>(Constants.secondryColor),
-                ),
-                onPressed: login,
-                child: Text(
-                  'Login',
-                  style: TextStyle(
-                      fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                      fontSize: 20,
-                      color: Colors.white),
-                ),
-              ),
-            ),
-            Row(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(15.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  "Don`t have an account?",
-                  style: TextStyle(
-                      fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                      fontSize: 15,
-                      color: Colors.white,
-                      letterSpacing: 1,
-                      wordSpacing: 1),
+                const SizedBox(height: 24),
+                const Image(
+                  height: 80,
+                  width: 80,
+                  image: AssetImage('assets/movie2.png'),
                 ),
-                TextButton(
+                const Padding(
+                  padding: EdgeInsets.all(13.0),
                   child: Text(
-                    "Sign Up",
+                    "Welcome back!",
                     style: TextStyle(
                         fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                        fontSize: 15,
-                        color: Colors.orange,
-                        letterSpacing: 1,
-                        wordSpacing: 1),
+                        fontSize: 30,
+                        color: Colors.white),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => SignUpPage()));
-                  },
                 ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(padding: EdgeInsets.only(left: 30)),
+                        Text(
+                          "E-mail address",
+                          style: TextStyle(
+                              fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                              fontSize: 15,
+                              color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        controller: uEmailController,
+                        style: TextStyle(
+                          color: Constants.primaryColor,
+                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                        ),
+                        cursorColor: Constants.secondryColor,
+                        decoration: _fieldDecoration(
+                          hintText: 'Email',
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: Constants.secondryColor,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Email required";
+                          }
+                          if (!validateEmail(value.trim())) {
+                            return "Enter a valid email";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 30),
+                          child: Text(
+                            "Password",
+                            style: TextStyle(
+                                fontFamily:
+                                    'FontsFree-Net-SFProText-Regular.ttf',
+                                fontSize: 15,
+                                color: Colors.white),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(right: 20),
+                          child: Text(
+                            "forget password?",
+                            style: TextStyle(
+                                fontFamily:
+                                    'FontsFree-Net-SFProText-Regular.ttf',
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: TextFormField(
+                        keyboardType: TextInputType.visiblePassword,
+                        obscureText: passToggle,
+                        controller: uPasswordController,
+                        style: TextStyle(
+                          color: Constants.primaryColor,
+                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                        ),
+                        cursorColor: Constants.secondryColor,
+                        decoration: _fieldDecoration(
+                          hintText: 'Password',
+                          prefixIcon: Icon(
+                            Icons.lock,
+                            color: Constants.secondryColor,
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                passToggle = !passToggle;
+                              });
+                            },
+                            icon: Icon(
+                              passToggle
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Constants.primaryColor,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Password required";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                Divider(
+                  height: 50,
+                  thickness: .5,
+                  color: Constants.secondryColor,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    CustomWidgets.socialButtonCircle(
+                        facebookColor, FontAwesomeIcons.facebookF,
+                        iconColor: Colors.white, onTap: () {
+                      Fluttertoast.showToast(msg: 'I am circle facebook');
+                    }),
+                    CustomWidgets.socialButtonCircle(
+                        googleColor, FontAwesomeIcons.googlePlusG,
+                        iconColor: Colors.white, onTap: () {
+                      Fluttertoast.showToast(msg: 'I am circle google');
+                    }),
+                    CustomWidgets.socialButtonCircle(
+                        whatsappColor, FontAwesomeIcons.whatsapp,
+                        iconColor: Colors.white, onTap: () {
+                      Fluttertoast.showToast(msg: 'I am circle whatsapp');
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  height: 55,
+                  width: 200,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Constants.secondryColor,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: login,
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(
+                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Don`t have an account?",
+                      style: TextStyle(
+                          fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                          fontSize: 15,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                          wordSpacing: 1),
+                    ),
+                    TextButton(
+                      child: const Text(
+                        "Sign Up",
+                        style: TextStyle(
+                            fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
+                            fontSize: 15,
+                            color: Colors.orange,
+                            letterSpacing: 1,
+                            wordSpacing: 1),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const SignUpPage()));
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
               ],
-            )
-          ],
+            ),
+          ),
         ),
       ),
     );

@@ -24,44 +24,53 @@ class FavDataProvider {
   FavDataProvider._internal();
 
   Future open() async {
-    db = await openDatabase(join(await getDatabasesPath(), 'favMovie.db'),
-        version: 1, onCreate: (Database db, int version) async {
-      await db.execute('''
+    db = await openDatabase(
+      join(await getDatabasesPath(), 'favMovie.db'),
+      version: 1,
+      onCreate: (Database db, int version) async {
+        await db.execute('''
 create table FavMovieTable ( 
-
 $columnrank integer,
 $columntitle text not null,
 $columnthumbnail text,
 $columnrating text,
-$columnid text,
+$columnid text primary key,
 $columnyear integer,
 $columnimage text,
 $columndescription text,
 $columntrailer text,
 $columnimdbid text
-
 )
 ''');
-    });
+      },
+    );
   }
 
   Future<List<FavScreenModel>> getData() async {
     List<Map<String, dynamic>> maps = await db.query('FavMovieTable');
-    if (maps.isEmpty)
+    if (maps.isEmpty) {
       return [];
-    else {
-      List<FavScreenModel> favmovie = [];
-      maps.forEach((element) {
-        favmovie.add(FavScreenModel.fromJson(element as Map<String, dynamic>));
-      });
-      print(maps);
-      return favmovie;
     }
+    return maps.map((element) => FavScreenModel.fromJson(element)).toList();
   }
 
-  Future<FavScreenModel> insert(FavScreenModel favScreenModel) async {
-    favScreenModel.id =
-        (await db.insert('FavMovieTable', favScreenModel.toJson())) as String;
+  Future<bool> isFavorite(String? id) async {
+    if (id == null) return false;
+    final maps = await db.query(
+      'FavMovieTable',
+      where: '$columnid = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    return maps.isNotEmpty;
+  }
+
+  Future<FavScreenModel?> insert(FavScreenModel favScreenModel) async {
+    if (favScreenModel.id == null) return null;
+    if (await isFavorite(favScreenModel.id)) {
+      return favScreenModel;
+    }
+    await db.insert('FavMovieTable', favScreenModel.toJson());
     return favScreenModel;
   }
 

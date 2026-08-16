@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movie_app/constant.dart';
 import 'package:movie_app/models/favScreenModel.dart';
 import 'package:movie_app/network/apiRequest.dart';
@@ -20,9 +21,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int indexCategory = -1;
   List indexList = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  late String category = '';
-  String initial = 'comedy';
-  @override
+  String category = '';
+  late Future<ListOfTops> _moviesFuture;
+
   List categories = [
     "comedy",
     "action",
@@ -35,26 +36,92 @@ class _MyHomePageState extends State<MyHomePage> {
     "science fiction",
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _moviesFuture = ApiTopMovies().apiData();
+  }
+
+  List<TopMoviesModel> _filteredMovies(List<TopMoviesModel> tops) {
+    if (indexCategory < 0 || category.isEmpty) {
+      return tops;
+    }
+    final selected = category.toLowerCase();
+    return tops
+        .where((movie) =>
+            movie.genre.any((g) => g.toLowerCase().contains(selected)))
+        .toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Constants.primaryColor,
-        body: FutureBuilder<ListOfTops>(
-            future: ApiTopMovies().ApiData(),
+        body: Padding(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 25,
+            bottom: 5,
+          ),
+          child: FutureBuilder<ListOfTops>(
+            future: _moviesFuture,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                print(snapshot.error.toString());
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          snapshot.error
+                              .toString()
+                              .replaceFirst('Exception: ', ''),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          height: 48,
+                          width: 140,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Constants.secondryColor,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _moviesFuture = ApiTopMovies().apiData();
+                              });
+                            },
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               }
               if (snapshot.hasData) {
-                print(snapshot.data!.tops);
-                List<String> images = [
-                  snapshot.data!.tops[0].image,
-                  snapshot.data!.tops[1].image,
-                  snapshot.data!.tops[2].image,
-                  snapshot.data!.tops[3].image,
-                  snapshot.data!.tops[4].image,
-                  snapshot.data!.tops[5].image,
-                  snapshot.data!.tops[6].image,
-                ];
+                final movies = _filteredMovies(snapshot.data!.tops);
+                final images = snapshot.data!.tops
+                    .take(7)
+                    .map((movie) => movie.image)
+                    .toList();
                 return Column(
                   children: [
                     CarouselSlider(
@@ -77,7 +144,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           builder: (BuildContext context) {
                             return Container(
                                 width: 400,
-                                // width: MediaQuery.of(context).size.width,
                                 decoration: BoxDecoration(
                                     image: DecorationImage(
                                         image: NetworkImage(i),
@@ -86,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         );
                       }).toList(),
                     ),
-                    Row(
+                    const Row(
                       children: [
                         Padding(
                           padding:
@@ -111,7 +177,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         itemBuilder: (context, index) => InkWell(
                           onTap: () {
                             setState(() {
-                              initial = categories[index];
                               indexCategory = indexList[index];
                               category = categories[index];
                             });
@@ -130,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Center(
                                 child: Text(
                               categories[index],
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             )),
                           ),
                         ),
@@ -141,174 +206,181 @@ class _MyHomePageState extends State<MyHomePage> {
                         itemCount: categories.length,
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 6,
                     ),
                     Expanded(
-                      child: ListView.separated(
-                          separatorBuilder: (BuildContext context, int index) =>
-                              const Divider(
+                      child: movies.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No movies in this category',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            )
+                          : ListView.separated(
+                              separatorBuilder:
+                                  (BuildContext context, int index) =>
+                                      const Divider(
                                 height: 8,
                               ),
-                          scrollDirection: Axis.vertical,
-                          itemCount: snapshot.data!.tops.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              color: Colors.black26,
-                              padding: const EdgeInsets.all(5),
-                              child: Center(
-                                child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      InkWell(
-                                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => DetailsPage(
-                                                rank: snapshot
-                                                    .data!.tops[index].rank,
-                                                title: snapshot
-                                                    .data!.tops[index].title,
-                                                thumbnail: snapshot.data!
-                                                    .tops[index].thumbnail,
-                                                rating: snapshot
-                                                    .data!.tops[index].rating,
-                                                id: snapshot
-                                                    .data!.tops[index].id,
-                                                year: snapshot
-                                                    .data!.tops[index].year,
-                                                image: snapshot
-                                                    .data!.tops[index].image,
-                                                description: snapshot.data!
-                                                    .tops[index].description,
-                                                trailer: snapshot.data!.tops[index].trailer,
-                                                genre: snapshot.data!.tops[index].genre,
-                                                director: snapshot.data!.tops[index].director,
-                                                writers: snapshot.data!.tops[index].writers))),
-                                        child: Hero(
-                                          tag: 'photo$index',
-                                          child: Container(
-                                            height: 150,
-                                            width: 150,
-                                            decoration: BoxDecoration(
-                                                color: Colors.black54,
-                                                border: Border.all(
-                                                  color: Constants.primaryColor,
-                                                  width: 3,
+                              scrollDirection: Axis.vertical,
+                              itemCount: movies.length,
+                              itemBuilder: (context, index) {
+                                final movie = movies[index];
+                                final heroTag = 'photo${movie.id}';
+                                return Container(
+                                  color: Colors.black26,
+                                  padding: const EdgeInsets.all(5),
+                                  child: Center(
+                                    child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          InkWell(
+                                            onTap: () => Navigator.of(context)
+                                                .push(MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        DetailsPage(
+                                                            heroTag: heroTag,
+                                                            rank: movie.rank,
+                                                            title: movie.title,
+                                                            thumbnail:
+                                                                movie.thumbnail,
+                                                            rating:
+                                                                movie.rating,
+                                                            id: movie.id,
+                                                            year: movie.year,
+                                                            image: movie.image,
+                                                            description: movie
+                                                                .description,
+                                                            trailer:
+                                                                movie.trailer,
+                                                            genre: movie.genre,
+                                                            director:
+                                                                movie.director,
+                                                            writers: movie
+                                                                .writers))),
+                                            child: Hero(
+                                              tag: heroTag,
+                                              child: Container(
+                                                height: 150,
+                                                width: 150,
+                                                decoration: BoxDecoration(
+                                                    color: Colors.black54,
+                                                    border: Border.all(
+                                                      color: Constants
+                                                          .primaryColor,
+                                                      width: 3,
+                                                    ),
+                                                    borderRadius:
+                                                        const BorderRadius.all(
+                                                            Radius.circular(
+                                                                15.0))),
+                                                child: Image.network(
+                                                  movie.image,
+                                                  fit: BoxFit.fill,
                                                 ),
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(15.0))),
-                                            child: Image.network(
-                                              "${snapshot.data!.tops[index].image}",
-                                              fit: BoxFit.fill,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 15,
-                                      ),
-                                      Flexible(
-                                        child: Column(children: [
-                                          Text(
-                                            snapshot.data!.tops[index].title,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            softWrap: false,
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 20),
+                                          const SizedBox(
+                                            width: 15,
                                           ),
-                                          Text(
-                                            snapshot.data!.tops[index].genre
-                                                .toString(),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            softWrap: false,
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w400,
-                                                fontSize: 15),
+                                          Flexible(
+                                            child: Column(children: [
+                                              Text(
+                                                movie.title,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                softWrap: false,
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 20),
+                                              ),
+                                              Text(
+                                                movie.genre.toString(),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                softWrap: false,
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 15),
+                                              ),
+                                            ]),
+                                          ),
+                                          Flexible(
+                                            child: Column(
+                                              children: [
+                                                const SizedBox(
+                                                  height: 90,
+                                                  width: 20,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      movie.rating,
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                      maxLines: 2,
+                                                      softWrap: false,
+                                                      style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          fontSize: 15),
+                                                    ),
+                                                    const Icon(
+                                                      Icons.star,
+                                                      color:
+                                                          Colors.yellowAccent,
+                                                      size: 15,
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.favorite,
+                                                size: 26,
+                                                color: Constants.secondryColor),
+                                            onPressed: () async {
+                                              await FavDataProvider.instance
+                                                  .insert(FavScreenModel(
+                                                      rank: movie.rank,
+                                                      title: movie.title,
+                                                      thumbnail:
+                                                          movie.thumbnail,
+                                                      rating: movie.rating,
+                                                      id: movie.id,
+                                                      year: movie.year,
+                                                      image: movie.image,
+                                                      description:
+                                                          movie.description,
+                                                      trailer: movie.trailer,
+                                                      imdbid: movie.imdbid));
+                                              Fluttertoast.showToast(
+                                                  msg: 'Added to favourites');
+                                            },
                                           ),
                                         ]),
-                                      ),
-                                      Flexible(
-                                        child: Column(
-                                          children: [
-                                            SizedBox(
-                                              height: 90,
-                                              width: 20,
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  snapshot
-                                                      .data!.tops[index].rating,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                  softWrap: false,
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      fontSize: 15),
-                                                ),
-                                                Icon(
-                                                  Icons.star,
-                                                  color: Colors.yellowAccent,
-                                                  size: 15,
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.favorite,
-                                            size: 26,
-                                            color: Constants.secondryColor),
-                                        onPressed: () async {
-                                          await FavDataProvider.instance.insert(
-                                              FavScreenModel(
-                                                  rank: snapshot
-                                                      .data!.tops[index].rank,
-                                                  title: snapshot
-                                                      .data!.tops[index].title,
-                                                  thumbnail: snapshot.data!
-                                                      .tops[index].thumbnail,
-                                                  rating: snapshot
-                                                      .data!.tops[index].rating,
-                                                  id: snapshot
-                                                      .data!.tops[index].id,
-                                                  year: snapshot
-                                                      .data!.tops[index].year,
-                                                  image: snapshot
-                                                      .data!.tops[index].image,
-                                                  description: snapshot.data!
-                                                      .tops[index].description,
-                                                  trailer: snapshot.data!
-                                                      .tops[index].trailer,
-                                                  imdbid: snapshot.data!
-                                                      .tops[index].imdbid));
-                                        },
-                                      ),
-                                    ]),
-                              ),
-                            );
-                          }),
+                                  ),
+                                );
+                              }),
                     ),
                   ],
                 );
               }
-              ;
 
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(
-                  color: Constants.primaryColor,
+                  color: Constants.secondryColor,
                 ),
               );
-            }));
+            }),
+        ),
+    );
   }
 }

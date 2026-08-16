@@ -22,8 +22,8 @@ class _WelcomePageState extends State<WelcomePage> {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 40.0),
+              const Padding(
+                padding: EdgeInsets.only(top: 40.0),
                 child: Text(
                   "Welcome",
                   style: TextStyle(
@@ -37,10 +37,10 @@ class _WelcomePageState extends State<WelcomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.all(10.0),
                     child: Image(
                       image: AssetImage('assets/movie.png'),
@@ -49,7 +49,7 @@ class _WelcomePageState extends State<WelcomePage> {
                       alignment: Alignment.center,
                     ),
                   ),
-                  Text(
+                  const Text(
                     "Watch thousand of hit \n movies and TV series \n for free",
                     maxLines: 3,
                     textAlign: TextAlign.center,
@@ -61,30 +61,31 @@ class _WelcomePageState extends State<WelcomePage> {
                       wordSpacing: 2,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
-                  Container(
-                    height: 60,
+                  SizedBox(
+                    height: 55,
                     width: 200,
-                    decoration: BoxDecoration(
-                      color: Constants.secondryColor,
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                    ),
                     child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll<Color>(
-                            Constants.secondryColor),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Constants.secondryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => LoginPage()));
+                            builder: (context) => const LoginPage()));
                       },
-                      child: Text(
+                      child: const Text(
                         'Login',
                         style: TextStyle(
                             fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
-                            fontSize: 30,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                       ),
@@ -93,7 +94,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Don`t have an account?",
                         style: TextStyle(
                             fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
@@ -103,7 +104,7 @@ class _WelcomePageState extends State<WelcomePage> {
                             wordSpacing: 1),
                       ),
                       TextButton(
-                        child: Text(
+                        child: const Text(
                           "Sign Up",
                           style: TextStyle(
                               fontFamily: 'FontsFree-Net-SFProText-Regular.ttf',
@@ -114,7 +115,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         ),
                         onPressed: () {
                           Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => SignUpPage()));
+                              builder: (context) => const SignUpPage()));
                         },
                       ),
                     ],

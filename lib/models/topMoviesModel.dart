@@ -2,16 +2,13 @@ class ListOfTops {
   late List<TopMoviesModel> tops;
   ListOfTops({required this.tops});
   factory ListOfTops.fromJson(List<dynamic> json) {
-    List<TopMoviesModel> tops = <TopMoviesModel>[];
-    tops = json.map((e) => TopMoviesModel.fromJson(e)).toList();
+    List<TopMoviesModel> tops =
+        json.map((e) => TopMoviesModel.fromJson(e as Map<String, dynamic>)).toList();
     return ListOfTops(tops: tops);
   }
+
   Map<String, dynamic> toJson() {
-    List<Map> topMoviesList = [];
-    tops!.forEach((element) => topMoviesList.add(element.toJson()));
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['tops'] = this.tops;
-    return data;
+    return {'tops': tops.map((e) => e.toJson()).toList()};
   }
 }
 
@@ -30,53 +27,73 @@ class TopMoviesModel {
   late List<String> writers;
   late String imdbid;
 
-  TopMoviesModel(
-      {required this.rank,
-      required this.title,
-      required this.thumbnail,
-      required this.rating,
-      required this.id,
-      required this.year,
-      required this.image,
-      required this.description,
-      required this.trailer,
-      required this.genre,
-      required this.director,
-      required this.writers,
-      required this.imdbid});
+  TopMoviesModel({
+    required this.rank,
+    required this.title,
+    required this.thumbnail,
+    required this.rating,
+    required this.id,
+    required this.year,
+    required this.image,
+    required this.description,
+    required this.trailer,
+    required this.genre,
+    required this.director,
+    required this.writers,
+    required this.imdbid,
+  });
+
+  static String _string(dynamic value, [String fallback = '']) {
+    if (value == null) return fallback;
+    return value.toString();
+  }
+
+  static int _int(dynamic value, [int fallback = 0]) {
+    if (value == null) return fallback;
+    if (value is int) return value;
+    return int.tryParse(value.toString()) ?? fallback;
+  }
+
+  static List<String> _stringList(dynamic value) {
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return <String>[];
+  }
 
   TopMoviesModel.fromJson(Map<String, dynamic> json) {
-    rank = json['rank'];
-    title = json['title'];
-    thumbnail = json['thumbnail'];
-    rating = json['rating'];
-    id = json['id'];
-    year = json['year'];
-    image = json['image'];
-    description = json['description'];
-
-    trailer = json['trailer'];
-    genre = json['genre'].cast<String>();
-    director = json['director'].cast<String>();
-    writers = json['writers'].cast<String>();
-    imdbid = json['imdbid'];
+    rank = _int(json['rank']);
+    title = _string(json['title']);
+    thumbnail = _string(json['thumbnail']);
+    rating = _string(json['rating']);
+    id = _string(json['id']);
+    year = _int(json['year']);
+    image = _string(
+      json['image'] ?? json['big_image'] ?? json['thumbnail'],
+    );
+    description = _string(json['description']);
+    trailer = _string(json['trailer']);
+    genre = _stringList(json['genre']);
+    director = _stringList(json['director']);
+    writers = _stringList(json['writers']);
+    imdbid = _string(json['imdbid']);
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['rank'] = this.rank;
-    data['title'] = this.title;
-    data['thumbnail'] = this.thumbnail;
-    data['rating'] = this.rating;
-    data['id'] = this.id;
-    data['year'] = this.year;
-    data['image'] = this.image;
-    data['description'] = this.description;
-    data['trailer'] = this.trailer;
-    data['genre'] = this.genre;
-    data['director'] = this.director;
-    data['writers'] = this.writers;
-    data['imdbid'] = this.imdbid;
-    return data;
+    return {
+      'rank': rank,
+      'title': title,
+      'thumbnail': thumbnail,
+      'rating': rating,
+      'id': id,
+      'year': year,
+      'image': image,
+      'description': description,
+      'trailer': trailer,
+      'genre': genre,
+      'director': director,
+      'writers': writers,
+      'imdbid': imdbid,
+    };
   }
 }

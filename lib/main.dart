@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movie_app/network/loginDataBase.dart';
 import 'package:movie_app/welcomeScreen/welcome.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Screens/favorite.dart';
 import 'Screens/home.dart';
@@ -8,22 +9,27 @@ import 'Screens/profile.dart';
 import 'constant.dart';
 import 'network/favoriteDataBase.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FavDataProvider.instance.open();
-  DbHelper.instance.initDb();
+  await FavDataProvider.instance.open();
+  await DbHelper.instance.initDb();
 
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+
+  runApp(MyApp(startLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool startLoggedIn;
+
+  const MyApp({super.key, this.startLoggedIn = false});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const WelcomePage(),
+      home: startLoggedIn ? const NavigationBarPage() : const WelcomePage(),
     );
   }
 }
@@ -38,23 +44,28 @@ class NavigationBarPage extends StatefulWidget {
 }
 
 class _NavigationBarPageState extends State<NavigationBarPage> {
-  @override
-  List<Map<String, dynamic>> _pages = [
-    {'page': MyHomePage(), 'title': 'Home'},
-    {'page': FavoritePage(), 'title': 'Favourite'},
-    {'page': ProfilePage(), 'title': 'Profile'}
-  ];
   int _selectedPageIndex = 0;
-  Index(int index) {
+  int _favoriteKey = 0;
+
+  void Index(int index) {
     setState(() {
       _selectedPageIndex = index;
+      if (index == 1) {
+        _favoriteKey++;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      const MyHomePage(),
+      FavoritePage(key: ValueKey(_favoriteKey)),
+      const ProfilePage(),
+    ];
+
     return Scaffold(
-      body: _pages[_selectedPageIndex]['page'],
+      body: pages[_selectedPageIndex],
       bottomNavigationBar: BottomNavigationBar(
         selectedFontSize: 12,
         unselectedFontSize: 12,
@@ -64,7 +75,7 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
         currentIndex: _selectedPageIndex,
         onTap: Index,
         type: BottomNavigationBarType.fixed,
-        items: [
+        items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined), label: 'Home'),
           BottomNavigationBarItem(

@@ -16,9 +16,9 @@ class CustomWidgets {
       },
       child: Container(
         height: 50,
-        margin: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+        margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         decoration: BoxDecoration(
-            color: color, borderRadius: BorderRadius.all(Radius.circular(10))),
+            color: color, borderRadius: const BorderRadius.all(Radius.circular(10))),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -27,9 +27,9 @@ class CustomWidgets {
               color: Colors.white,
             ),
             Container(
-              margin: EdgeInsets.only(left: 20),
+              margin: const EdgeInsets.only(left: 20),
               child: Text(title,
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w400)),
@@ -46,15 +46,16 @@ class CustomWidgets {
         onTap!();
       },
       child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: new BoxDecoration(
+          padding: const EdgeInsets.all(14.0),
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color,
           ),
           child: Icon(
             icon,
+            size: 20,
             color: iconColor,
-          )), //
+          )),
     );
   }
 }
